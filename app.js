@@ -59,17 +59,8 @@ async function fetchData(file) {
 
 // Initialize filter options
 function initializeFilters() {
-    // Get unique specialties and areas
-    const specialties = [...new Set(providers.map(p => p.specialty))].filter(Boolean);
+    // Get unique areas
     const areas = [...new Set(providers.map(p => p.area))].filter(Boolean);
-
-    // Populate specialty select
-    specialties.forEach(specialty => {
-        const option = document.createElement('option');
-        option.value = specialty;
-        option.textContent = specialty;
-        specialtySelect.appendChild(option);
-    });
 
     // Populate area select
     areas.forEach(area => {
@@ -78,11 +69,49 @@ function initializeFilters() {
         option.textContent = area;
         areaSelect.appendChild(option);
     });
+
+    // Initialize specialties based on selected category
+    updateSpecialties();
+}
+
+// Update specialties based on selected category
+function updateSpecialties() {
+    // Clear current specialties
+    specialtySelect.innerHTML = '<option value="">الكل</option>';
+
+    const selectedCategory = mainCategorySelect.value;
+    if (!selectedCategory) {
+        // If no category is selected, show all specialties
+        const allSpecialties = [...new Set(providers.map(p => p.specialty))].filter(Boolean);
+        allSpecialties.forEach(specialty => {
+            const option = document.createElement('option');
+            option.value = specialty;
+            option.textContent = specialty;
+            specialtySelect.appendChild(option);
+        });
+    } else {
+        // Show specialties only for selected category
+        const categorySpecialties = [...new Set(
+            providers
+                .filter(p => p.type === selectedCategory)
+                .map(p => p.specialty)
+        )].filter(Boolean);
+
+        categorySpecialties.forEach(specialty => {
+            const option = document.createElement('option');
+            option.value = specialty;
+            option.textContent = specialty;
+            specialtySelect.appendChild(option);
+        });
+    }
 }
 
 // Add event listeners
 function addEventListeners() {
-    mainCategorySelect.addEventListener('change', filterResults);
+    mainCategorySelect.addEventListener('change', () => {
+        updateSpecialties();
+        filterResults();
+    });
     specialtySelect.addEventListener('change', filterResults);
     areaSelect.addEventListener('change', filterResults);
     searchInput.addEventListener('input', debounce(filterResults, 300));
